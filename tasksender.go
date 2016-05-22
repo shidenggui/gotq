@@ -9,7 +9,7 @@ import (
 type TaskSender struct {
 	Name      string
 	Broker    brokers.Broker
-	F         func(map[string]interface{}) interface{}
+	F         func(map[string]interface{}) map[string]interface{}
 	QueueName string
 	Args      interface{}
 	Result    interface{}

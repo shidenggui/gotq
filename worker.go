@@ -23,10 +23,17 @@ func (w *Worker) Start() {
 		taskByte := <-TaskChan
 		_ = json.Unmarshal(taskByte, &taskStruct)
 		argsMap := taskStruct.Args
+		log.Info(fmt.Sprintf("[WORKER] Receive task: %+v", taskStruct))
+
 		sender := w.Tasks[taskStruct.F]
-		//realArgs.X = 1111
-		log.Info(fmt.Sprintf("%#v", argsMap))
-		sender.F(argsMap.(map[string]interface{}))
+		res := sender.F(argsMap.(map[string]interface{}))
+		log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v", taskStruct.Id, res))
+
+		if taskStruct.Async {
+			log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v, async task no need reply", taskStruct.Id, res))
+			continue
+		}
+
 	}
 }
 
