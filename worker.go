@@ -34,6 +34,21 @@ func (w *Worker) Start() {
 			continue
 		}
 
+		log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v, start reply", taskStruct.Id, res))
+
+		replyJson, err := json.Marshal(res)
+		if err != nil {
+			log.Info(fmt.Sprintf("[WORKER] Encode task %s result:  to json err: %s", taskStruct.Id, res, err))
+			continue
+		}
+		err = w.Broker.Delay(replyJson, taskStruct.Id)
+		if err != nil {
+			log.Info(fmt.Sprintf("[WORKER] Reply task %s err: %s", taskStruct.Id, err))
+			continue
+		}
+		log.Info(fmt.Sprintf("[WORKER] Reply task %s success", taskStruct.Id))
+
+		w.Broker.Expire(taskStruct.Id, 1800)
 	}
 }
 

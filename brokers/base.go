@@ -1,7 +1,8 @@
 package brokers
 
 type Broker interface {
-	Dispatch([]byte) error
+	Request(string, int64) ([]byte, error)
 	Delay([]byte, string) error
 	Receive(string) ([]byte, error)
+	Expire(string, int64) error
 }

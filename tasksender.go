@@ -12,16 +12,45 @@ type TaskSender struct {
 	F         func(map[string]interface{}) map[string]interface{}
 	QueueName string
 	Args      interface{}
-	Result    interface{}
 }
 
-func (t *TaskSender) Delay(args interface{}) []byte {
+func (t *TaskSender) Delay(args interface{}) error {
+	const async = true
 	task := new(Task)
-	task.Init()
-	task.Args = args
-	task.F = t.Name
+	task.Init(t.Name, args, async)
 
-	taskJson, _ := json.Marshal(task)
-	t.Broker.Delay(taskJson, t.QueueName)
-	return taskJson
+	taskJson, err := json.Marshal(task)
+	if err != nil {
+		return err
+	}
+	err = t.Broker.Delay(taskJson, t.QueueName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]interface{}, error) {
+	const async = false
+	task := new(Task)
+	task.Init(t.Name, args, async)
+
+	taskJson, err := json.Marshal(task)
+	if err != nil {
+		return nil, err
+	}
+
+	err = t.Broker.Delay(taskJson, t.QueueName)
+	if err != nil {
+		return nil, err
+	}
+
+	//block for reply
+	replyByte, err := t.Broker.Request(task.Id, blockTime)
+	if err != nil {
+		return nil, err
+	}
+	replyMap := make(map[string]interface{})
+	json.Unmarshal(replyByte, &replyMap)
+	return replyMap, nil
 }

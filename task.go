@@ -11,7 +11,11 @@ type Task struct {
 	Args  interface{}
 }
 
-func (t *Task) Init() {
+func (t *Task) Init(f string, args interface{}, async bool) {
 	id, _ := uuid.NewUUID()
 	t.Id = id.String()
+
+	t.F = f
+	t.Args = args
+	t.Async = async
 }

@@ -22,14 +22,41 @@ func (r *RedisBroker) Delay(jsonByte []byte, queue string) error {
 	return nil
 }
 
+func (r *RedisBroker) Expire(key string, expireTime int64) error {
+	c := r.Pool.Get()
+	defer c.Close()
+	_, err := c.Do("EXPIRE", key, expireTime)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewRedisBroker(cfg *config.BrokerCfg) *RedisBroker {
 	return &RedisBroker{
 		Pool: NewRedisPool(cfg.Host, cfg.Port, cfg.Password, cfg.DB),
 	}
 }
 
-func (r *RedisBroker) Dispatch(jsonByte []byte) error {
-	return nil
+func (r *RedisBroker) Request(queue string, blockTime int64) ([]byte, error) {
+	c := r.Pool.Get()
+	defer c.Close()
+
+	taskSlice, err := c.Do("BLPOP", queue, blockTime)
+	if err != nil {
+		return nil, err
+	}
+
+	taskPairs, err := redis.ByteSlices(taskSlice, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(taskPairs) != 2 {
+		return nil, err
+	}
+
+	return taskPairs[1], nil
 }
 
 func (r *RedisBroker) Receive(queue string) ([]byte, error) {
