@@ -13,5 +13,5 @@ var (
 func main() {
 	flag.Parse()
 
-	task.App.WorkerStart(10)
+	task.App.WorkerStart(*WorkerNum)
 }
