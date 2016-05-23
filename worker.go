@@ -27,14 +27,13 @@ func (w *Worker) Start() {
 
 		sender := w.Tasks[taskStruct.F]
 		res := sender.F(argsMap.(map[string]interface{}))
-		log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v", taskStruct.Id, res))
 
 		if taskStruct.Async {
 			log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v, async task no need reply", taskStruct.Id, res))
 			continue
 		}
 
-		log.Info(fmt.Sprintf("[WORKER] Finish task: %s, result: %v, start reply", taskStruct.Id, res))
+		log.Info(fmt.Sprintf("[WORKER] Finish task: %s, reply result: %v", taskStruct.Id, res))
 
 		replyJson, err := json.Marshal(res)
 		if err != nil {
@@ -46,7 +45,6 @@ func (w *Worker) Start() {
 			log.Info(fmt.Sprintf("[WORKER] Reply task %s err: %s", taskStruct.Id, err))
 			continue
 		}
-		log.Info(fmt.Sprintf("[WORKER] Reply task %s success", taskStruct.Id))
 
 		w.Broker.Expire(taskStruct.Id, 1800)
 	}
