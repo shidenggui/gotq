@@ -30,7 +30,7 @@ go run example/worker/worker.go
 
 #### block for result
 ```golang
-go run example/server/main.go
+go run example/server/server.go
 ```
 
 #### dispatch async task
