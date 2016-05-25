@@ -22,6 +22,16 @@ func (r *RedisBroker) Delay(jsonByte []byte, queue string) error {
 	return nil
 }
 
+func (r *RedisBroker) QuickDelay(jsonByte []byte, queue string) error {
+	c := r.Pool.Get()
+	defer c.Close()
+	_, err := c.Do("RPUSH", queue, jsonByte)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *RedisBroker) Expire(key string, expireTime int64) error {
 	c := r.Pool.Get()
 	defer c.Close()
@@ -42,7 +52,7 @@ func (r *RedisBroker) Request(queue string, blockTime int64) ([]byte, error) {
 	c := r.Pool.Get()
 	defer c.Close()
 
-	taskSlice, err := c.Do("BLPOP", queue, blockTime)
+	taskSlice, err := c.Do("BRPOP", queue, blockTime)
 	if err != nil {
 		return nil, err
 	}
