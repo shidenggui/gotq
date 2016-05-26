@@ -3,7 +3,9 @@ package gotq
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	log "github.com/inconshreveable/log15"
 	"github.com/shidenggui/gotq/brokers"
 	_ "github.com/shidenggui/gotq/log"
@@ -30,6 +32,25 @@ func (w *Worker) Start() {
 			_ = json.Unmarshal(taskByte, &taskStruct)
 			argsMap := taskStruct.Args
 			log.Info(fmt.Sprintf("[WORKER] Receive task: %+v", taskStruct))
+
+			// drop sync outdate task
+			if !taskStruct.Async {
+				uuidStruct, err := uuid.Parse(taskStruct.Id)
+				if err != nil {
+					log.Error("[WORKER] task id error, cant parse uuid")
+					return
+				}
+				uuidTime := uuidStruct.Time()
+				sendTime, _ := uuidTime.UnixTime()
+
+				nowTime := time.Now()
+				interval := nowTime.Unix() - sendTime
+				if interval > taskStruct.WaitTime {
+					log.Info(fmt.Sprintf("[WORKER] discard task outdate, task %#v, send time: %#v, wait time: %#v, now time: %#v", taskStruct, sendTime, taskStruct.WaitTime, time.Now()))
+					return
+				}
+
+			}
 
 			sender := w.Tasks[taskStruct.F]
 			res := sender.F(argsMap.(map[string]interface{}))

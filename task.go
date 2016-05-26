@@ -5,10 +5,11 @@ import (
 )
 
 type Task struct {
-	F     string
-	Id    string
-	Async bool
-	Args  interface{}
+	F        string
+	Id       string
+	Async    bool
+	Args     interface{}
+	WaitTime int64
 }
 
 func (t *Task) Init(f string, args interface{}, async bool) {

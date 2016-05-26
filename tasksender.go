@@ -46,10 +46,12 @@ func (t *TaskSender) QuickDelay(args interface{}) error {
 	return nil
 }
 
+// request, use redis's lpush to send tasks
 func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]interface{}, error) {
 	const async = false
 	task := new(Task)
 	task.Init(t.Name, args, async)
+	task.WaitTime = blockTime
 
 	taskJson, err := json.Marshal(task)
 	if err != nil {
@@ -71,10 +73,12 @@ func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]inte
 	return replyMap, nil
 }
 
+// quick request, use redis's rpush to send tasks
 func (t *TaskSender) QuickRequest(args interface{}, blockTime int64) (map[string]interface{}, error) {
 	const async = false
 	task := new(Task)
 	task.Init(t.Name, args, async)
+	task.WaitTime = blockTime
 
 	taskJson, err := json.Marshal(task)
 	if err != nil {
