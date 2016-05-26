@@ -1,14 +1,15 @@
 # gotq
 
-golang distribute task queue, base on redis as message queue, lightweight and easy use, inspired by python's celery
+golang distribute task queue, base on redis, lightweight and easy use, inspired by python's celery
 
 ![](https://raw.githubusercontent.com/shidenggui/assets/master/gotq/example_worker.png)
 
 ## Feature
 
 * use redis as broker
-* custom worker number
-* support async task or block for wait task's result
+* customize worker numbers
+* support async task or block for wait reply
+* worker will discard outdate sync task
 
 ## Installation
 
@@ -39,10 +40,10 @@ go run example/server/server.go
 go run example/server/main.go -m delay
 ```
 
-## Usage
+## QuickStart
 
 ### define task
-
+,
 ```golang
 //config broker
 var cfg = config.Config{
@@ -56,7 +57,7 @@ var cfg = config.Config{
 
 var App = gotq.New(&cfg)
 
-// taskSender
+// taskSender, one task function one sender
 var AddSender = App.Register(Add)
 
 type AddArgs struct {
@@ -73,10 +74,20 @@ func Add(argsInter map[string]interface{}) map[string]interface{} {
 
 	//recommended use mapstructure to bind map to struct
 	ms.Decode(argsInter, args)
+    
+    // do soemthing you want
 
+    //recommeded use github.com/fatih/strtuts to convert map to struct
+    res := &AddResult{
+        Sum: args.X + args.Y,
+    }
+
+    /* also can simple use map[string]interface{}
 	res := make(map[string]interface{})
 	res["sum"] = args.X + args.Y
-	return res
+    /*
+
+	return structs.Map(res)
 }
 
 ```
