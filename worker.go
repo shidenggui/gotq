@@ -52,7 +52,11 @@ func (w *Worker) Start() {
 
 			}
 
-			sender := w.Tasks[taskStruct.F]
+			sender, ok := w.Tasks[taskStruct.F]
+			if !ok {
+				log.Error(fmt.Sprintf("[WORKER] Task %s not register, register task list: %#v", taskStruct.F, w.Tasks))
+				return
+			}
 			res := sender.F(argsMap.(map[string]interface{}))
 
 			if taskStruct.Async {
