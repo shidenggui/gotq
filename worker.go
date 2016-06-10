@@ -3,6 +3,7 @@ package gotq
 import (
 	"encoding/json"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,7 @@ func (w *Worker) Start() {
 			defer func() {
 				if r := recover(); r != nil {
 					log.Error(fmt.Sprintf("[WORKER] recover from panic: %v", r))
+					debug.PrintStack()
 				}
 			}()
 			taskStruct := new(Task)

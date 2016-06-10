@@ -6,6 +6,7 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	config "github.com/shidenggui/gotq/config"
+	"github.com/shidenggui/gotq/vars"
 )
 
 type RedisBroker struct {
@@ -57,6 +58,10 @@ func (r *RedisBroker) Request(queue string, blockTime int64) ([]byte, error) {
 		return nil, err
 	}
 
+	if taskSlice == nil {
+		return nil, vars.ErrTimeout
+	}
+
 	taskPairs, err := redis.ByteSlices(taskSlice, nil)
 	if err != nil {
 		return nil, err
@@ -93,7 +98,7 @@ func (r *RedisBroker) Receive(queue string) ([]byte, error) {
 func NewRedisPool(host string, port int64, password string, DB int64) *redis.Pool {
 	server := host + ":" + strconv.Itoa(int(port))
 	return &redis.Pool{
-		MaxIdle:     100,
+		MaxIdle:     3000,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)

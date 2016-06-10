@@ -2,6 +2,7 @@ package gotq
 
 import (
 	"fmt"
+	"time"
 
 	log "github.com/inconshreveable/log15"
 	"github.com/shidenggui/gotq/brokers"
@@ -50,7 +51,9 @@ func (a *App) WorkerStart(num int64) {
 	for {
 		taskByte, err := a.Broker.Receive("gotq")
 		if err != nil {
-			panic(err)
+			log.Error(fmt.Sprintf("[MainProcess] Cant get task from redis: %#v ", err))
+			time.Sleep(time.Millisecond * 100)
+			continue
 		}
 
 		log.Info("[MainProcess] Block for receive task...")
