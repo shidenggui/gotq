@@ -14,6 +14,10 @@ type TaskSender struct {
 	Args      interface{}
 }
 
+
+// Just send task to broker, doesn't return result
+//
+// If you need task result, should use Request
 func (t *TaskSender) Delay(args interface{}) error {
 	const async = true
 	task := new(Task)
@@ -30,6 +34,12 @@ func (t *TaskSender) Delay(args interface{}) error {
 	return nil
 }
 
+// Just send task to broker, doesn't return result
+//
+// When broker is redis, it'll use rpush to send task, Delay default use lpush.
+// This can cause task send later but execute quicker
+//
+// If you need task result should use Request
 func (t *TaskSender) QuickDelay(args interface{}) error {
 	const async = true
 	task := new(Task)
@@ -46,7 +56,9 @@ func (t *TaskSender) QuickDelay(args interface{}) error {
 	return nil
 }
 
-// request, use redis's lpush to send tasks
+// Send task to broker and wait result
+//
+// Return result is type of map[string]interface{}, must binding by yourself
 func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]interface{}, error) {
 	const async = false
 	task := new(Task)
@@ -63,7 +75,7 @@ func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]inte
 		return nil, err
 	}
 
-	//block for reply
+	// block for reply
 	replyByte, err := t.Broker.Request(task.Id, blockTime)
 	if err != nil {
 		return nil, err
@@ -73,7 +85,12 @@ func (t *TaskSender) Request(args interface{}, blockTime int64) (map[string]inte
 	return replyMap, nil
 }
 
-// quick request, use redis's rpush to send tasks
+// Send task to broker and wait result
+//
+// When broker is redis, it'll use rpush to send task, Request default use lpush.
+// This can cause task send later but execute quicker
+//
+// Return result is type of map[string]interface{}, must binding by yourself
 func (t *TaskSender) QuickRequest(args interface{}, blockTime int64) (map[string]interface{}, error) {
 	const async = false
 	task := new(Task)

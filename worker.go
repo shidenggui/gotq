@@ -12,14 +12,21 @@ import (
 	_ "github.com/shidenggui/gotq/log"
 )
 
+// Worker get task from Broker's Queue, and return result if needed
 type Worker struct {
+	// Tasks contains func string name -> func pointer map
+	// Worker get task func by receive task saved function name
 	Tasks     map[string]*TaskSender
+	// Broker queue to save tasks
 	QueueName string
+	// Broker instance, use to set task result
 	Broker    brokers.Broker
 }
 
+// Task channel, worker get task from this channel
 var TaskChan = make(chan []byte)
 
+// Start worker to get task from TaskChan and execute it, return result if needed
 func (w *Worker) Start() {
 	for {
 		func() {
@@ -35,8 +42,9 @@ func (w *Worker) Start() {
 			argsMap := taskStruct.Args
 			log.Info(fmt.Sprintf("[WORKER] Receive task: %+v", taskStruct))
 
-			// drop sync outdate task
+			// drop sync timeout task
 			if !taskStruct.Async {
+				// parse create time from task uuid
 				uuidStruct, err := uuid.Parse(taskStruct.Id)
 				if err != nil {
 					log.Error("[WORKER] task id error, cant parse uuid")
@@ -79,6 +87,7 @@ func (w *Worker) Start() {
 				return
 			}
 
+			// set return result, default expire time is 30 minutes
 			w.Broker.Expire(taskStruct.Id, 1800)
 		}()
 	}

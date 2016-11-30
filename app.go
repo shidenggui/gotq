@@ -10,12 +10,14 @@ import (
 	_ "github.com/shidenggui/gotq/log"
 )
 
+// App init broker, register task function, send task and wait result
 type App struct {
 	Tasks  map[string]*TaskSender
 	Cfg    *config.Config
 	Broker brokers.Broker
 }
 
+// Entry point for init broker
 func New(cfg *config.Config) *App {
 	app := new(App)
 	app.Cfg = cfg
@@ -24,6 +26,8 @@ func New(cfg *config.Config) *App {
 	return app
 }
 
+
+// Register task function and return task sender
 func (a *App) Register(f func(map[string]interface{}) map[string]interface{}) *TaskSender {
 	taskSender := &TaskSender{
 		Name:      GetFuncName(f),
@@ -35,6 +39,7 @@ func (a *App) Register(f func(map[string]interface{}) map[string]interface{}) *T
 	return taskSender
 }
 
+// Start worker to consume task
 func (a *App) WorkerStart(num int64) {
 	for i := int64(0); i < num; i++ {
 		worker := &Worker{
